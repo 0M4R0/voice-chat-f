@@ -58,7 +58,6 @@ export const clearMessages = (userId: string, friendId: string): void => {
 // Clear all messages (useful for logout)
 export const clearAllMessages = (userId: string): void => {
   try {
-    const prefix = `${STORAGE_KEY_PREFIX}${userId}_`;
     const keys = Object.keys(localStorage);
     keys.forEach(key => {
       if (key.startsWith(STORAGE_KEY_PREFIX) && key.includes(userId)) {

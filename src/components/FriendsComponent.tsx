@@ -19,8 +19,9 @@ export const FriendsComponent: React.FC<FriendsComponentProps> = ({
   const { user } = useAuth();
   const token = getAccessToken();
   
-  // Use provided socket hook or create one (fallback)
-  const socket = socketHook || useSocket(token, (user as { _id?: string; id?: string })?._id || (user as { _id?: string; id?: string })?.id);
+  // Always call useSocket hook, but use the provided socketHook if available
+  const defaultSocket = useSocket(token, (user as { _id?: string; id?: string })?._id || (user as { _id?: string; id?: string })?.id);
+  const socket = socketHook || defaultSocket;
   
   const {
     friends,
@@ -82,7 +83,7 @@ export const FriendsComponent: React.FC<FriendsComponentProps> = ({
         `Friend request sent to ${username.trim()}#${discriminator.trim()}!`,
       );
       setUserInput("");
-    } catch (err) {
+    } catch {
       setError("Error sending friend request");
     } finally {
       setLoading(false);
@@ -94,7 +95,7 @@ export const FriendsComponent: React.FC<FriendsComponentProps> = ({
       setLoading(true);
       setError("");
       respondToRequest(userId, accept);
-    } catch (err) {
+    } catch {
       setError("Error responding to request");
     } finally {
       setLoading(false);
@@ -111,7 +112,7 @@ export const FriendsComponent: React.FC<FriendsComponentProps> = ({
       setError("");
       await removeFriend(friendId);
       loadFriends();
-    } catch (err) {
+    } catch {
       setError("Error removing friend");
     } finally {
       setLoading(false);

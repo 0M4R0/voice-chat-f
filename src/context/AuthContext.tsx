@@ -18,6 +18,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null); // Added token state
   const [loading, setLoading] = useState(true);
   const isRefreshing = useRef(false);
 
@@ -44,6 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         const { data: completeUserData } = await api.get("/me");
         setUser(completeUserData);
+        await checkAuth(); // Re-check auth state to ensure token is loaded
       } catch (err) {
         console.error("Failed to fetch complete user data:", err);
       }
@@ -65,6 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       await authServiceLogout();
       setUser(null);
+      setToken(null); // Clear token state on logout
       // Disconnect socket on logout
       disconnectSocket();
     } catch (err) {
@@ -85,6 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // Try to refresh the token
       const { data } = await api.post("/auth/refresh-token");
       setAccessToken(data.accessToken);
+      setToken(data.accessToken); // Set token state
 
       // If the refresh works, we request the user data
       if (data.accessToken) {
@@ -114,6 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         console.error("Unexpected auth error:", error);
       }
       setAccessToken(null);
+      setToken(null); // Clear token state
       setUser(null);
       // Clear the invalid refresh token cookie
       document.cookie =
@@ -129,7 +134,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+    <AuthContext.Provider
+      value={{ user, token, login, register, logout, loading }}
+    >
       {children}
     </AuthContext.Provider>
   );
